@@ -106,6 +106,51 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function GET(req: NextRequest) {
+  try {
+    const tenantId = resolveTenantId(req.headers);
+    const supabase = getSupabaseAdmin();
+
+    const { data, error } = await supabase
+      .from("documents")
+      .select("id, title, source_uri, source_type, created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({ documents: data || [] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const tenantId = resolveTenantId(req.headers);
+    
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    const supabase = getSupabaseAdmin();
+    // Assuming DB has cascade delete on versions/chunks
+    const { error } = await supabase
+      .from("documents")
+      .delete()
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({ status: "ok" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 function chunkText(text: string, size: number) {
   const chunks: string[] = [];
   let index = 0;

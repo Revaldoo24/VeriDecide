@@ -9,6 +9,8 @@ export async function POST(req: NextRequest) {
     const decision = String(body?.decision || "").toUpperCase();
     const justification = String(body?.justification || "").trim();
 
+    const modifiedContent = body?.modifiedContent ? String(body.modifiedContent).trim() : null;
+
     if (!outputId || !["APPROVED", "REJECTED"].includes(decision)) {
       return NextResponse.json({ error: "Invalid review payload." }, { status: 400 });
     }
@@ -29,9 +31,15 @@ export async function POST(req: NextRequest) {
       throw new Error(reviewError.message);
     }
 
+    // Update Output Status & Content (if edited)
+    const updatePayload: any = { status: decision };
+    if (modifiedContent) {
+      updatePayload.governed_output = modifiedContent;
+    }
+
     const { error: updateError } = await supabase
       .from("outputs")
-      .update({ status: decision })
+      .update(updatePayload)
       .eq("id", outputId);
 
     if (updateError) {
@@ -44,7 +52,12 @@ export async function POST(req: NextRequest) {
       action: "HUMAN_REVIEW",
       entityType: "review",
       entityId: outputId,
-      payload: { decision, justification },
+      payload: { 
+        decision, 
+        justification,
+        content_modified: !!modifiedContent, // Flag for audit
+        modified_content: modifiedContent // Optional: keep full text in audit if sensitive
+      },
     });
 
     return NextResponse.json({ status: "ok" });
