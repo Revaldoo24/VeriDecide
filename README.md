@@ -1,76 +1,135 @@
-# VeriDecide - Responsible GenAI Governance MVP
+# VeriDecide - Responsible GenAI Governance Platform
 
-A governed, auditable, policy-driven RAG platform for regulatory decision support. The LLM is treated as untrusted and interchangeable. All validation, policy enforcement, and auditability live outside the model.
+**Repository**: [https://github.com/Revaldoo24/VeriDecide.git](https://github.com/Revaldoo24/VeriDecide.git)
 
-## Core MVP Capabilities
-- Governed RAG with trusted, versioned evidence
-- Transparent output validation (groundedness scoring)
-- Policy enforcement with explicit thresholds
-- Human-in-the-loop approval workflow
-- Append-only audit ledger with hash chaining
-- Multi-tenant structure via Supabase + RLS
+VeriDecide is an enterprise-grade platform designed to make Generative AI **safe, legal, and trusted** for high-stakes decision-making. Unlike standard AI chatbots, VeriDecide treats the AI model as an "untrusted intern"—it checks every fact, enforces strict rules, and records every step for future audits.
 
-## Quick Start
+---
+
+## 🚀 Key Features (What does it do?)
+
+### 1. Trusted Answers Only (RAG)
+
+It doesn't just "guess". It finds answers from:
+
+- **Internal Documents**: Your company's verified PDF policies.
+- **Official Open Source**: Validated government or educational sites (e.g., `.gov`, `.edu`).
+- _Feature_: If the AI can't find proof, it refuses to answer.
+
+### 2. "Fact-Checker" Bot (Validation Engine)
+
+Automatically detects **hallucinations** (lies/errors).
+
+- **Green**: "Grounded" - Every sentence matches the provided documents.
+- **Red**: "Hallucinated" - The AI made something up.
+- _UI_: You see a clear "Traffic Light" score (Low/Medium/High Risk) on every answer.
+
+### 3. Human Gatekeeper (Human-in-the-Loop)
+
+No dangerous decision goes live without human approval.
+
+- **Review Dashboard**: A human expert sees the AI's answer side-by-side with the original law/policy.
+- **Forced Justification**: The underlying system **forces** the human to type _why_ they approved it (e.g., "Verified against Clause 5a").
+
+### 4. Forensic Audit Trail (The "Black Box" Recorder)
+
+Every action is cryptographically locked.
+
+- "Who submitted the prompt?"
+- "Which AI model answered?"
+- "Which documents were used?"
+- "Who approved it?"
+- _Result_: A tamper-proof timeline that holds up in a legal audit.
+
+---
+
+## 🛠️ Technology Stack (Under the Hood)
+
+We use modern, robust technologies to ensure security and speed.
+
+| Component     | Technology                | Why we chose it (Layman explanation)                                                                                                                        |
+| :------------ | :------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework** | **Next.js 15 (React)**    | The "chassis" of the car. It builds the website you see, handles the buttons, and runs the logic for connecting everything.                                 |
+| **Language**  | **TypeScript**            | The "strict grammar" code. It prevents bugs by ensuring data moving around is exactly what we expect (e.g., numbers are numbers, text is text).             |
+| **Database**  | **Supabase (PostgreSQL)** | The "filing cabinet". It stores trustable documents, audit logs, and user data. It uses **RLS (Row Level Security)** so User A never sees User B's secrets. |
+| **AI Brain**  | **Gemini (Google)**       | The "engine". It understands language and drafts the text, but VeriDecide acts as the "brakes and steering" to keep it safe.                                |
+| **Search**    | **pgvector**              | The "librarian". It converts text into math (vectors) to find the _exact_ paragraph relevant to your question, even if you use different words.             |
+| **Audit**     | **SHA-256 Hashing**       | The "digital wax seal". It fingerprints every record. If someone sneaks into the database and changes a log, the seal breaks, alerting the system.          |
+
+---
+
+## 🔌 API Documentation (Simplified)
+
+The system exposes "endpoints" (digital doors) for other apps to talk to VeriDecide.
+
+### 1. The Decision Pipeline (`POST /api/pipeline`)
+
+This is the main door. You throw a question in, and it runs the entire governance process.
+
+- **Input (What you send):**
+  ```json
+  {
+    "prompt": "What is the max loan amount?",
+    "domain": "Finance"
+  }
+  ```
+- **Output (What you get back):**
+  ```json
+  {
+    "answer": "The max loan is $50,000...",
+    "risk_score": "LOW",
+    "proof": ["[Source: Loan Policy v2, Page 5]"],
+    "status": "PENDING_REVIEW"
+  }
+  ```
+  _Meaning: "Here is the answer, it's low risk, I found proof on Page 5, but a human still needs to double-check it."_
+
+### 2. The Audit Log (`GET /api/audit`)
+
+This door lets auditors see the history.
+
+- **Output:**
+  ```json
+  [
+    { "time": "10:00 AM", "action": "AI Generated Draft", "hash": "abc123..." },
+    { "time": "10:05 AM", "action": "Human Approved", "hash": "xyz789..." }
+  ]
+  ```
+  _Meaning: A chronological list of everything that happened, stamped with a code that proves it hasn't been changed._
+
+---
+
+## 💻 Quick Start (Developer Setup)
 
 ### 1. Configure Supabase
-Run the SQL migrations in order in your Supabase SQL editor:
-- `supabase/migrations/001_init.sql`
-- `supabase/migrations/002_rls.sql`
-- `supabase/migrations/003_functions.sql`
-- `supabase/migrations/004_demo_seed.sql` (optional demo tenant + policy)
-- `supabase/migrations/005_bias_explainability.sql`
-- `supabase/migrations/006_rls_bias_explainability.sql`
-- `supabase/migrations/007_prompt_metadata.sql`
-- `supabase/migrations/008_rls_prompt_metadata.sql`
-- `supabase/migrations/009_source_type.sql`
 
-### 2. Configure environment
-Copy `.env.local.example` to `.env.local` and set:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_ANON_KEY` (optional for later auth)
-- `DEMO_TENANT_ID` (matches demo seed)
-- Optional: SERP ingestion variables if you want open-source evidence (`OPEN_SOURCE_ENABLED`, `SERP_PROVIDER`, `SERP_API_KEY`)
+Run the SQL migrations in `supabase/migrations/` using your Supabase SQL editor. This sets up the database tables and security rules.
 
-### 3. Seed demo evidence (optional)
-```bash
-npm run seed:docs
-```
-This inserts a demo document and chunk embeddings using the same local embedding logic as the app.
+### 2. Configure Environment
 
-### 4. Open-source evidence (optional)
-You can let the pipeline ingest open-source evidence via SERP before answering:
-```bash
-POST /api/pipeline
-{
-  "prompt": "...",
-  "allowOpenSource": true,
-  "openSourceQuery": "optional override"
-}
+Create a `.env.local` file with your keys:
+
+```env
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=...
 ```
 
-Set `OPEN_SOURCE_ENABLED=true`, configure `SERP_PROVIDER` (`serper` or `serpapi`), and `SERP_API_KEY`.
+### 3. Run the App
 
-### 5. Upload evidence manually
-Use the Evidence Library at `/documents` to paste policy text and store it as governed evidence.
-
-### 6. Run the app
 ```bash
+npm install
 npm run dev
 ```
 
-## Demo Flow
-1. Go to `/prompts` and submit a regulatory question.
-2. Review the governed output at `/outputs`.
-3. Approve or reject the output at `/reviews` with justification.
-4. Inspect the append-only audit log at `/audit`.
+Open `http://localhost:3000` to see the **VeriDecide Dashboard**.
 
-## LLM Provider
-Default is `mock` for offline demos. To use Gemini:
-- Set `LLM_PROVIDER=gemini`
-- Provide `GEMINI_API_URL` and `GEMINI_API_KEY` (use your preferred Gemini endpoint)
+---
 
-## Notes
-- Supabase is used strictly for data + access infrastructure (RLS, storage, auth).
-- Audit ledger is append-only and protected by RLS + triggers.
-- Validation and policy enforcement occur server-side and are non-advisory.
+### Folder Structure
+
+- `src/app/` - The User Interface (pages you see).
+- `src/lib/governance/` - The "Police" logic (validators, policy checkers).
+- `src/lib/audit/` - The "Recorder" logic (hashing, logging).
+- `supabase/migrations/` - The Database blueprints.
