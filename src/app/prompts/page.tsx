@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  ShieldCheckIcon,
+  GlobeAltIcon,
+  DocumentTextIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon
+} from "@heroicons/react/24/outline";
 
+// Define simpler Types for readability
 type PipelineResult = {
   output?: string;
   rawOutput?: string;
@@ -112,16 +122,19 @@ export default function PromptPage() {
       <div className="mx-auto w-full max-w-6xl">
         <div className="topbar">
           <div>
-            <p className="badge">Prompt Studio</p>
-            <h1 className="mt-3 text-3xl font-semibold">Submit pertanyaan regulasi</h1>
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="h-6 w-6 text-indigo-500" />
+              <p className="badge">Prompt Studio</p>
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold">Submit Regulatory Query</h1>
             <p className="mt-2 text-sm text-[color:var(--muted)]">
-              Langkah pertama untuk menjalankan RAG pipeline yang ter-govern.
+              The first step to running a governed RAG pipeline.
             </p>
           </div>
           <Link className="link" href="/">Back to Overview</Link>
         </div>
 
-        <div className="mt-8 grid-two">
+        <div className="mt-8 grid lg:grid-cols-2 gap-8">
           <div className="card card-animate">
             <div className="card-body">
               <label className="text-sm font-semibold">Tenant ID (optional override)</label>
@@ -135,12 +148,12 @@ export default function PromptPage() {
               <label className="mt-6 text-sm font-semibold">Title</label>
               <input
                 className="input mt-2"
-                placeholder="Judul ringkas keputusan"
+                placeholder="Brief title for this decision"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
               />
 
-              <div className="mt-6 grid-two">
+              <div className="mt-6 grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold">Domain</label>
                   <select
@@ -171,28 +184,32 @@ export default function PromptPage() {
               <label className="mt-6 text-sm font-semibold">Tags (comma separated)</label>
               <input
                 className="input mt-2"
-                placeholder="contoh: bantuan pendidikan, jakarta"
+                placeholder="e.g. compliance, funds, jakarta"
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
               />
 
               <div className="mt-6 panel">
-                <p className="panel-title">Open-source evidence (SERP)</p>
+                <div className="flex items-center gap-2">
+                  <GlobeAltIcon className="h-5 w-5 text-blue-500" />
+                  <p className="panel-title">Open-source evidence (SERP)</p>
+                </div>
                 <p className="panel-subtitle">
-                  Aktifkan untuk mengambil bukti dari open-source sebelum menjawab.
+                  Enable to fetch open-source evidence before answering.
                 </p>
-                <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                <label className="mt-3 flex items-center gap-2 text-sm font-semibold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={allowOpenSource}
                     onChange={(event) => setAllowOpenSource(event.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                   />
                   Allow open-source ingestion
                 </label>
                 {allowOpenSource && (
                   <input
                     className="input mt-3"
-                    placeholder="Query SERP (opsional override)"
+                    placeholder="SERP Query (optional override)"
                     value={openSourceQuery}
                     onChange={(event) => setOpenSourceQuery(event.target.value)}
                   />
@@ -201,24 +218,31 @@ export default function PromptPage() {
 
               <label className="mt-6 text-sm font-semibold">Prompt</label>
               <textarea
-                className="textarea mt-2"
-                placeholder="Contoh: Apa kewajiban retensi data untuk keputusan regulasi?"
+                className="textarea mt-2 min-h-[120px]"
+                placeholder="e.g. What are the data retention obligations for regulatory decisions?"
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
               />
 
               <button
-                className="button mt-6"
+                className="button mt-6 w-full justify-center"
                 onClick={submit}
                 disabled={loading || !prompt.trim()}
               >
-                {loading ? "Running Governance Pipeline" : "Run Governed Pipeline"}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <ClockIcon className="h-4 w-4 animate-spin" />
+                    Running Governance Pipeline...
+                  </span>
+                ) : (
+                  "Run Governed Pipeline"
+                )}
               </button>
 
               <div className="callout mt-6">
-                <p className="text-sm font-semibold">Setelah submit</p>
+                <p className="text-sm font-semibold">After submitting</p>
                 <p className="section-subtitle">
-                  Cek hasil di halaman `/outputs` untuk melihat status, risk, dan confidence.
+                  Check results on the `/outputs` page to view status, risk levels, and confidence scores.
                 </p>
               </div>
             </div>
@@ -227,49 +251,55 @@ export default function PromptPage() {
           <div className="card card-animate">
             <div className="card-body grid gap-5">
               <div>
-                <p className="badge">Apa yang terjadi di belakang?</p>
-                <h2 className="section-title mt-3">Governance steps</h2>
+                <p className="badge">Service Modules</p>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div className="panel">
+                     <div className="flex items-center gap-2 mb-2">
+                         <DocumentTextIcon className="h-5 w-5 text-gray-500" />
+                         <h3 className="panel-title">RAG Orchestrator</h3>
+                     </div>
+                    <p className="panel-subtitle">Evidence retrieval & prompt composition.</p>
+                  </div>
+                  <div className="panel">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ExclamationTriangleIcon className="h-5 w-5 text-orange-500" />
+                        <h3 className="panel-title">Policy Engine</h3>
+                      </div>
+                    <p className="panel-subtitle">Enforce thresholds and forbidden topics.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="badge">Governance Steps</p>
                 <div className="flow mt-4">
                   <div className="flow-step">
                     <div className="flow-index">1</div>
                     <div className="flow-body">
                       <h4>RAG Retrieval</h4>
-                      <p className="section-subtitle">Ambil evidence dari dokumen tervalidasi.</p>
+                      <p className="section-subtitle">Fetch evidence from validated documents.</p>
                     </div>
                   </div>
                   <div className="flow-step">
                     <div className="flow-index">2</div>
                     <div className="flow-body">
                       <h4>LLM Draft</h4>
-                      <p className="section-subtitle">Buat draft dengan sitasi wajib.</p>
+                      <p className="section-subtitle">Create draft with mandatory citations.</p>
                     </div>
                   </div>
                   <div className="flow-step">
                     <div className="flow-index">3</div>
                     <div className="flow-body">
                       <h4>Validation</h4>
-                      <p className="section-subtitle">Cek klaim vs evidence, beri label groundedness.</p>
+                      <p className="section-subtitle">Check claims vs evidence, label groundedness.</p>
                     </div>
                   </div>
                   <div className="flow-step">
                     <div className="flow-index">4</div>
                     <div className="flow-body">
                       <h4>Policy Gate</h4>
-                      <p className="section-subtitle">Cek threshold evidence, risk, confidence.</p>
+                      <p className="section-subtitle">Check thresholds: evidence, risk, confidence.</p>
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="badge">Service Modules</p>
-                <div className="grid-two mt-3">
-                  <div className="panel">
-                    <h3 className="panel-title">RAG Orchestrator</h3>
-                    <p className="panel-subtitle">Evidence retrieval & prompt composition.</p>
-                  </div>
-                  <div className="panel">
-                    <h3 className="panel-title">Policy Engine</h3>
-                    <p className="panel-subtitle">Enforce thresholds and forbidden topics.</p>
                   </div>
                 </div>
               </div>
@@ -278,181 +308,228 @@ export default function PromptPage() {
         </div>
 
         {error && (
-          <div className="card mt-6 border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="card mt-6 border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-3">
+            <XCircleIcon className="h-5 w-5 text-red-700" />
             {error}
           </div>
         )}
 
         {result && (
-          <div className="grid gap-4 mt-6">
-            {result.rawOutput && (
-              <div className="card card-animate">
-                <div className="card-body">
-                  <h2 className="section-title">Jawaban AI Asli (Raw)</h2>
-                  <p className="section-subtitle">
-                    Ini adalah output murni dari Gemini sebelum validasi/governance.
-                  </p>
-                  <p className="section-subtitle">{result.rawOutput}</p>
-                </div>
-              </div>
-            )}
-            {result.analytics && (
-              <div className="card card-animate">
-                <div className="card-body">
-                  <h2 className="section-title">Analisis Output AI Asli</h2>
-                  <p className="section-subtitle">
-                    Ringkasan ini menjelaskan seberapa kuat dukungan evidence, tingkat risiko, dan sumber mana saja
-                    yang dipakai oleh jawaban AI.
-                  </p>
-                  <div className="grid-two mt-4">
-                    <div>
-                      <p className="section-subtitle">
-                        Validation: {result.validation ?? "N/A"}
-                      </p>
-                      <p className="section-subtitle">
-                        Evidence Ratio:{" "}
-                        {result.analytics.evidenceRatio !== null && result.analytics.evidenceRatio !== undefined
-                          ? Number(result.analytics.evidenceRatio).toFixed(2)
-                          : "N/A"}
-                      </p>
-                      <p className="section-subtitle">
-                        Confidence:{" "}
-                        {result.confidence !== null && result.confidence !== undefined
-                          ? Number(result.confidence).toFixed(2)
-                          : "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="section-subtitle">
-                        Legal Risk: {result.legalRisk ?? result.risk ?? "N/A"}
-                      </p>
-                      <p className="section-subtitle">
-                        Bias Risk: {result.biasRisk ?? "N/A"}
-                      </p>
-                      {result.biasFlags && result.biasFlags.length > 0 && (
-                        <p className="section-subtitle">
-                          Bias Flags: {result.biasFlags.join(", ")}
-                        </p>
-                      )}
-                    </div>
+          <div className="grid gap-4 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Status Header */}
+            <div className="card border-l-4 border-l-indigo-500">
+              <div className="card-body flex items-center justify-between">
+                <div>
+                  <p className="badge">Status</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    {result.validation === "GROUNDED" ? (
+                      <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                    ) : (
+                      <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />
+                    )}
+                    <h2 className="text-xl font-bold">
+                      {result.status} - {result.validation}
+                    </h2>
                   </div>
-                  {result.analytics.sources && result.analytics.sources.length > 0 && (
-                    <div className="mt-4 text-xs text-[color:var(--muted)]">
-                      {result.analytics.sources.map((source) => (
-                        <p key={`${source.citation}-${source.title}`}>
-                          {source.citation} - {source.title ?? "Untitled"} -{" "}
-                          {source.sourceType ?? "internal"} - Similarity:{" "}
-                          {source.similarity !== null && source.similarity !== undefined
-                            ? Number(source.similarity).toFixed(2)
-                            : "N/A"}
-                        </p>
-                      ))}
-                    </div>
-                  )}
+                </div>
+                <div className="text-right">
+                   <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Governance Decision</p>
+                   <p className="text-2xl font-bold text-gray-900">{result.status?.includes("REJECTED") ? "REJECTED" : "APPROVED"}</p>
                 </div>
               </div>
-            )}
-            {result.governedSummary && (
-              <div className="card card-animate">
-                <div className="card-body">
-                  <h2 className="section-title">Governance Summary</h2>
-                  {result.governedSummary.notes.map((note) => (
-                    <p key={note} className="section-subtitle">- {note}</p>
-                  ))}
-                </div>
-              </div>
-            )}
-            {result.governedOutput && (
-              <div className="card card-animate">
-                <div className="card-body">
-                  <h2 className="section-title">Output Setelah Governance</h2>
-                  <p className="section-subtitle">{result.governedOutput}</p>
-                </div>
-              </div>
-            )}
+            </div>
+
             {result.prompt && (
               <div className="card card-animate">
                 <div className="card-body">
                   <h2 className="section-title">Prompt Metadata</h2>
-                  <p className="section-subtitle">Title: {result.prompt.title || "-"}</p>
-                  <p className="section-subtitle">Domain: {result.prompt.domain || "-"}</p>
-                  <p className="section-subtitle">Urgency: {result.prompt.urgency || "-"}</p>
-                  {result.prompt.tags && result.prompt.tags.length > 0 && (
-                    <p className="section-subtitle">Tags: {result.prompt.tags.join(", ")}</p>
-                  )}
-                  {result.prompt.keywordHits && result.prompt.keywordHits.length > 0 && (
-                    <p className="section-subtitle">
-                      Keyword hits: {result.prompt.keywordHits.join(", ")}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase">Title</span>
+                      <p className="font-medium">{result.prompt.title || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase">Domain</span>
+                      <p className="font-medium">{result.prompt.domain || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase">Urgency</span>
+                      <p className="font-medium">{result.prompt.urgency || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase">Tags</span>
+                      <p className="font-medium">{result.prompt.tags?.join(", ") || "-"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid lg:grid-cols-2 gap-6">
+              {result.rawOutput && (
+                <div className="card card-animate">
+                  <div className="card-body">
+                    <h2 className="section-title text-gray-500">AI Draft (Raw Output)</h2>
+                    <p className="section-subtitle mb-4">
+                       Pure output from the LLM before governance layer validation.
                     </p>
-                  )}
-                </div>
-              </div>
-            )}
-            {result.rebuttal && (
-              <div className="card card-animate">
-                <div className="card-body">
-                  <h2 className="section-title">Sanggahan Governance</h2>
-                  <p className="section-subtitle">{result.rebuttal.summary}</p>
-                  {result.rebuttal.issues.length > 0 && (
-                    <div className="mt-3 text-xs text-[color:var(--muted)]">
-                      {result.rebuttal.issues.map((issue) => (
-                        <p key={issue}>- {issue}</p>
-                      ))}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 prose prose-sm max-w-none">
+                      <p className="whitespace-pre-wrap">{result.rawOutput}</p>
                     </div>
-                  )}
-                  {result.rebuttal.policyReasons.length > 0 && (
-                    <div className="mt-3 text-xs text-[color:var(--muted)]">
-                      <p className="font-semibold">Policy reasons:</p>
-                      {result.rebuttal.policyReasons.map((reason) => (
-                        <p key={reason}>- {reason}</p>
-                      ))}
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {result.analytics && (
+                <div className="card card-animate">
+                  <div className="card-body">
+                    <h2 className="section-title">Risk Analysis (Risk Engine)</h2>
+                    <p className="section-subtitle mb-4">
+                      Automated evaluation of confidence, grounding, and bias.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="panel bg-blue-50 border-blue-100">
+                        <span className="text-xs text-blue-600 font-bold uppercase">Confidence</span>
+                        <p className="text-2xl font-bold text-blue-900">
+                          {(Number(result.confidence || 0) * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                      <div className="panel bg-green-50 border-green-100">
+                        <span className="text-xs text-green-600 font-bold uppercase">Evidence Ratio</span>
+                        <p className="text-2xl font-bold text-green-900">
+                          {(Number(result.analytics.evidenceRatio || 0) * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                      <div className="panel bg-gray-50 border-gray-100">
+                        <span className="text-xs text-gray-600 font-bold uppercase">Legal Risk</span>
+                        <p className="text-lg font-bold text-gray-900">{result.legalRisk || "N/A"}</p>
+                      </div>
+                      <div className="panel bg-gray-50 border-gray-100">
+                        <span className="text-xs text-gray-600 font-bold uppercase">Bias Risk</span>
+                        <p className="text-lg font-bold text-gray-900">{result.biasRisk || "N/A"}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h3 className="text-sm font-bold text-gray-900 mb-2">Evidence Sources</h3>
+                      {result.analytics.sources && result.analytics.sources.length > 0 ? (
+                        <div className="space-y-2">
+                          {result.analytics.sources.map((source, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-sm p-2 bg-gray-50 rounded border border-gray-100">
+                              <span className="font-mono text-xs bg-gray-200 px-1 rounded text-gray-600">{source.citation}</span>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900 truncate">{source.title || "Untitled Document"}</p>
+                                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                  <span className={`px-1.5 py-0.5 rounded ${source.sourceType === 'internal' ? 'bg-indigo-100 text-indigo-700' : 'bg-orange-100 text-orange-700'}`}>
+                                    {source.sourceType || "internal"}
+                                  </span>
+                                  <span>Sim: {Number(source.similarity || 0).toFixed(4)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">No evidence sources cited.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Governance Action Cards */}
+            <div className="grid lg:grid-cols-2 gap-6">
+               {result.governedSummary && (
+                <div className="card card-animate border-l-4 border-l-green-500">
+                  <div className="card-body">
+                    <h2 className="section-title text-green-700">Governance Summary (Approved)</h2>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-gray-700">
+                      {result.governedSummary.notes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                    {result.governedOutput && (
+                       <div className="mt-4 pt-4 border-t border-gray-100">
+                         <p className="text-xs uppercase text-gray-500 font-bold">Final Approved Output</p>
+                         <p className="mt-2 text-gray-900 bg-green-50 p-3 rounded border border-green-100">{result.governedOutput}</p>
+                       </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {result.rebuttal && (
+                <div className="card card-animate border-l-4 border-l-red-500">
+                  <div className="card-body">
+                    <h2 className="section-title text-red-700">Governance Rebuttal (Blocked)</h2>
+                    <p className="section-subtitle text-red-600 font-medium">{result.rebuttal.summary}</p>
+                    
+                    {result.rebuttal.issues.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-bold text-gray-700 uppercase">Issues Detected</p>
+                        <ul className="list-disc list-inside mt-1 text-sm text-red-600">
+                          {result.rebuttal.issues.map((issue) => (
+                            <li key={issue}>{issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {result.rebuttal.policyReasons.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-bold text-gray-700 uppercase">Policy Violations</p>
+                        <ul className="list-disc list-inside mt-1 text-sm text-gray-600">
+                          {result.rebuttal.policyReasons.map((reason) => (
+                            <li key={reason}>{reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {result.openSourceIngest && (
               <div className="card card-animate">
                 <div className="card-body">
-                  <h2 className="section-title">Open-source Ingestion</h2>
-                  <p className="section-subtitle">
-                    Query: {result.openSourceIngest.query}
-                  </p>
-                  <p className="section-subtitle">
-                    Attempted: {result.openSourceIngest.attempted} - Ingested: {result.openSourceIngest.ingested} - Skipped: {result.openSourceIngest.skipped}
-                  </p>
-                  {result.openSourceIngest.debug && (
-                    <div className="mt-3 text-xs text-[color:var(--muted)]">
-                      <p>Provider: {result.openSourceIngest.debug.provider || "unknown"}</p>
-                      <p>Allowlist: {result.openSourceIngest.debug.allowlist.join(", ") || "(empty)"}</p>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <GlobeAltIcon className="h-5 w-5 text-gray-500" />
+                    <h2 className="section-title">Open-source Ingestion Logs</h2>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-4 text-center">
+                     <div className="panel bg-gray-50">
+                        <span className="text-xs block text-gray-500">Attempted</span>
+                        <span className="font-bold text-lg">{result.openSourceIngest.attempted}</span>
+                     </div>
+                     <div className="panel bg-green-50 border-green-100">
+                        <span className="text-xs block text-green-600">Ingested</span>
+                        <span className="font-bold text-lg text-green-700">{result.openSourceIngest.ingested}</span>
+                     </div>
+                     <div className="panel bg-orange-50 border-orange-100">
+                        <span className="text-xs block text-orange-600">Skipped</span>
+                        <span className="font-bold text-lg text-orange-700">{result.openSourceIngest.skipped}</span>
+                     </div>
+                  </div>
+                  
                   {result.openSourceIngest.skippedDomains && result.openSourceIngest.skippedDomains.length > 0 && (
-                    <div className="mt-3 text-xs text-[color:var(--muted)]">
-                      <p className="font-semibold">Skipped domains:</p>
-                      {result.openSourceIngest.skippedDomains.map((item) => (
-                        <p key={item.url}>- {item.host}: {item.reason}</p>
-                      ))}
-                    </div>
-                  )}
-                  {result.openSourceIngest.errors.length > 0 && (
-                    <div className="mt-3 text-xs text-[color:var(--muted)]">
-                      {result.openSourceIngest.errors.map((errorItem) => (
-                        <p key={errorItem.url}>- {errorItem.url}: {errorItem.reason}</p>
-                      ))}
-                    </div>
+                     <div className="mt-4">
+                       <p className="text-xs font-bold text-gray-500 uppercase mb-2">Skipped Domain Reasons</p>
+                       <div className="space-y-1">
+                         {result.openSourceIngest.skippedDomains.map((item, i) => (
+                           <p key={i} className="text-xs text-gray-600 flex justify-between border-b border-gray-100 pb-1">
+                             <span className="font-medium">{item.host}</span>
+                             <span className="italic text-gray-400">{item.reason}</span>
+                           </p>
+                         ))}
+                       </div>
+                     </div>
                   )}
                 </div>
               </div>
             )}
-            <div className="card">
-              <div className="card-body">
-                <p className="badge">Status</p>
-                <p className="section-subtitle mt-2">
-                  {result.status} - {result.validation}
-                </p>
-              </div>
-            </div>
           </div>
         )}
       </div>

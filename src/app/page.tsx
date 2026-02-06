@@ -95,23 +95,23 @@ export default function Home() {
           <div className="card-body grid gap-6 md:grid-cols-3">
             <div>
               <p className="badge">Governance Invariant</p>
-              <h3 className="mt-3 text-xl font-semibold">LLM tetap untrusted</h3>
+              <h3 className="mt-3 text-xl font-semibold">LLM remains untrusted</h3>
               <p className="mt-3 text-sm text-[color:var(--muted)]">
-                Semua keputusan berada di policy layer, bukan di model.
+                All decisions reside in the policy layer, not the model.
               </p>
             </div>
             <div>
               <p className="badge">Evidence Control</p>
-              <h3 className="mt-3 text-xl font-semibold">Hanya sumber tervalidasi</h3>
+              <h3 className="mt-3 text-xl font-semibold">Validated sources only</h3>
               <p className="mt-3 text-sm text-[color:var(--muted)]">
-                Dokumen disimpan dengan checksum dan versioning.
+                Documents are stored with checksums and strict versioning.
               </p>
             </div>
             <div>
               <p className="badge">Accountability</p>
-              <h3 className="mt-3 text-xl font-semibold">Audit siap forensik</h3>
+              <h3 className="mt-3 text-xl font-semibold">Forensic-ready audit</h3>
               <p className="mt-3 text-sm text-[color:var(--muted)]">
-                Semua langkah masuk ledger yang tidak bisa diubah.
+                Every step is recorded in an immutable ledger.
               </p>
             </div>
           </div>

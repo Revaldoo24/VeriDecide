@@ -10,6 +10,7 @@
     "seed:docs": "node --env-file .env.local scripts/seedDocs.mjs"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.95.0",
     "next": "16.1.6",
     "react": "19.2.3",
