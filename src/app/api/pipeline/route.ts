@@ -16,6 +16,8 @@ import { detectLanguage } from "@/lib/services/languageService";
 import { ingestOpenSourceEvidence } from "@/lib/services/openSourceIngestService";
 import { analyzePrompt } from "@/lib/services/promptAnalysisService";
 import { buildGovernedSummary } from "@/lib/services/governedSummaryService";
+import { evaluateFairness } from "@/lib/services/fairnessService";
+import { buildReasoningTrace } from "@/lib/services/reasoningService";
 
 export async function POST(req: NextRequest) {
   try {
@@ -381,6 +383,20 @@ export async function POST(req: NextRequest) {
       new Set([...scores.biasFlags, ...promptBias.flags, ...inferenceBias.flags]),
     );
 
+    // Fairness evaluation (output-level bias mitigation)
+    const fairnessMetrics = evaluateFairness(llmOutput.text, combinedBiasFlags);
+    console.info("[pipeline] fairness score", fairnessMetrics.score, "flags", fairnessMetrics.flags);
+
+    // Build reasoning trace for explainability
+    const reasoningSteps = buildReasoningTrace({
+      promptText,
+      evidenceCount: evidence.length,
+      validationResult: validation.classification,
+      policyDecision: "PENDING", // Will be updated after policy check
+      biasFlags: combinedBiasFlags,
+      fairnessScore: fairnessMetrics.score,
+    });
+
     await supabase
       .from("outputs")
       .update({
@@ -391,6 +407,10 @@ export async function POST(req: NextRequest) {
         bias_risk: scores.biasRisk,
         confidence_internal: confidenceInternal,
         confidence_open_source: confidenceOpenSource,
+        model_version: "gemini-1.5-flash",
+        model_parameters: { temperature: 0.7, max_tokens: 2048, top_p: 0.95 },
+        reasoning_steps: reasoningSteps,
+        fairness_score: fairnessMetrics.score,
       })
       .eq("id", outputRow.id);
 
