@@ -142,9 +142,29 @@ export async function POST(req: NextRequest) {
         payload: openSourceReport,
       });
     }
+    
+    console.log("[PIPELINE] Generating query embedding...");
     const queryEmbedding = embedTextLocal(promptText);
+    console.log(`[PIPELINE] Query embedding generated: dimension=${queryEmbedding.length}`);
+    console.log(`[PIPELINE] First 5 values: [${queryEmbedding.slice(0, 5).join(", ")}]`);
+    
+    console.log(`[PIPELINE] Calling retrieveEvidence for tenant: ${tenantId}`);
     const evidence = await retrieveEvidence({ tenantId, queryEmbedding, matchCount: 6 });
     console.info("[pipeline] evidence retrieved", evidence.length);
+    
+    if (evidence.length === 0) {
+      console.warn("[PIPELINE] ⚠️ WARNING: No evidence chunks retrieved! This will cause HALLUCINATED status.");
+      console.warn("[PIPELINE] Possible causes:");
+      console.warn("[PIPELINE]   1. No documents uploaded for this tenant");
+      console.warn("[PIPELINE]   2. Embedding mismatch between query and stored chunks");
+      console.warn("[PIPELINE]   3. Supabase match_chunks function not working");
+    } else {
+      console.log("[PIPELINE] Evidence details:");
+      evidence.forEach((chunk, idx) => {
+        console.log(`[PIPELINE]   [${idx + 1}] ID: ${chunk.id}, Similarity: ${chunk.similarity.toFixed(4)}, Content preview: "${chunk.content.substring(0, 80)}..."`);
+      });
+    }
+
 
     const evidenceIds = evidence.map((chunk) => chunk.id);
     const { data: chunkMeta } = await supabase

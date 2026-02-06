@@ -2,11 +2,23 @@ export const EMBEDDING_DIM = 1536;
 
 export function embedTextLocal(text: string) {
   const vector = new Array<number>(EMBEDDING_DIM).fill(0);
+  
+  // Improved tokenization: keep alphanumeric (including Indonesian) and spaces
   const tokens = text
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/[^\w\s]/g, " ") // Keep word characters (includes Indonesian letters)
     .split(/\s+/)
     .filter(Boolean);
+
+  console.log(`[EMBEDDING] Input text: "${text.substring(0, 100)}..."`);
+  console.log(`[EMBEDDING] Tokens extracted: ${tokens.length} tokens`);
+  console.log(`[EMBEDDING] First 10 tokens: [${tokens.slice(0, 10).join(", ")}]`);
+
+  if (tokens.length === 0) {
+    console.error("[EMBEDDING] ❌ ERROR: No tokens extracted! This will produce a zero vector.");
+    console.error("[EMBEDDING] Original text:", text);
+    return vector; // Return zero vector (will cause low similarity)
+  }
 
   for (const token of tokens) {
     const hash = hashToken(token);
@@ -14,7 +26,11 @@ export function embedTextLocal(text: string) {
     vector[index] += 1;
   }
 
-  return normalize(vector);
+  const normalized = normalize(vector);
+  const nonZeroCount = normalized.filter(v => v !== 0).length;
+  console.log(`[EMBEDDING] Vector generated: ${nonZeroCount} non-zero dimensions out of ${EMBEDDING_DIM}`);
+  
+  return normalized;
 }
 
 export function toVectorString(vector: number[]) {
